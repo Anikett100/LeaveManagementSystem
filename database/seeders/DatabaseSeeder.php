@@ -24,17 +24,22 @@ class DatabaseSeeder extends Seeder
         // ]);
         $users = [
             [
-                'name' => 'Aniket',
-                'email' => 'user@gmail.com',
-                'password' => Hash::make('user@123'),
+                'name' => 'aniket Navale',
+                'email' => 'aniketnavale2712@gmail.com',
+                'password' => Hash::make('aniket@123'),
             ],
             [
-                'name' => 'Sankalp',
+                'name' => 'sankalp Khot',
+                'email' => 'sankapl@ycstech.in',
+                'password' => Hash::make('sankalp@123'),
+            ],
+            [
+                'name' => 'manager',
                 'email' => 'manager@gmail.com',
                 'password' => Hash::make('manager@123'),
             ],
             [
-                'name' => 'Kartik',
+                'name' => 'admin',
                 'email' => 'admin@gmail.com',
                 'password' => Hash::make('admin@123'),
             ],

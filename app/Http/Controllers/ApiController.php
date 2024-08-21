@@ -30,12 +30,7 @@ class ApiController extends Controller
         }
     }
 
-    // for get 
-    public function getProducts()
-    {
-        $login = Login::get();
-        return response()->json($login);
-    } 
+   
 
     public function getData()
     {
