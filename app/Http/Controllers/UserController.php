@@ -45,7 +45,7 @@ public function AddLeave(Request $request)
     
     if ($data) {
         $email = Auth::user()->email;
-        $email1 = ['kartik@ycstech.in'];
+        // $email1 = ['kartik@ycstech.in'];
         $messageData = [
             'username' => $user->name,
             'leavecategory' => $leave->leavecategory,
@@ -54,6 +54,7 @@ public function AddLeave(Request $request)
             'fromdate' => $leave->fromdate,
             'todate' => $leave->todate,
             'noofdays' => $leave->noofdays,
+            
             'reason' => $leave->reason,
         ];
 
@@ -62,11 +63,11 @@ public function AddLeave(Request $request)
                     ->subject('Leave Request')
                     ->cc(json_decode($leave->cc));
         });
-        Mail::send('emails.userLeave', $messageData, function ($message) use ($email1, $leave) {
-            $message->to($email1)
-                    ->subject('Leave Request')
-                    ->cc(json_decode($leave->cc));
-        });
+        // Mail::send('emails.userLeave', $messageData, function ($message) use ($email1, $leave) {
+        //     $message->to($email1)
+        //             ->subject('Leave Request')
+        //             ->cc(json_decode($leave->cc));
+        // });
 
         return response()->json([
             'status' => 200,
@@ -87,6 +88,15 @@ public function AddLeave(Request $request)
 
         return response()->json($leave);
     }
+
+    public function getLeaves()
+{
+    $userId = auth()->id(); 
+    $leave = UserLeaves::where('user_id', $userId)->orderBy('id', 'desc')->get();
+
+    return response()->json(['leaves' => $leave]);
+}
+
 
 // for update
     public function getUserLeave($id)
@@ -137,6 +147,7 @@ public function updateLeave(Request $request)
     $leave->save();
 
     $email = Auth::user()->email;
+    $username = Auth::user()->name; 
     $messageData = [
         'leavecategory' => $leave->leavecategory,
         'leavetype' => $leave->leavetype,
@@ -145,6 +156,7 @@ public function updateLeave(Request $request)
         'todate'=>$leave->todate,
         'noofdays' => $leave->noofdays,
         'reason' => $leave->reason,
+        'username' => $username,
     ];
 
     Mail::send('emails.updateUserLeave', $messageData, function ($message) use ($email, $leave) {
@@ -156,17 +168,6 @@ public function updateLeave(Request $request)
     return response()->json(['message' => 'Leave request updated successfully'], 200);
 }
 
-
-    // public function deleteLeave(Request $request, $id)
-    // {
-    //     $leave = UserLeaves::find($id);
-    //     if ($leave) {
-    //         $leave->delete();
-    //         return response()->json(['message' => 'Leave deleted successfully.'], 200);
-    //     } else {
-    //         return response()->json(['message' => 'Leave not found.'], 404);
-    //     }
-    // }
 
     public function deleteLeave(Request $request, $id)
 {
@@ -226,6 +227,7 @@ public function calculateCarryForwardLeaves($user)
     return response()->json(['message' => 'Carry forward leaves calculated successfully', 'paidleaves' => $user->paidleaves]);
 }
 
+
 public function getUser()
 {
     $user = Auth::user();
@@ -233,16 +235,7 @@ public function getUser()
     if (!$user) {
         return response()->json(['error' => 'User not authenticated'], 401);
     }
-
     return response()->json($user);
 }
-
-
-
-
-
-
-
-
 
 }

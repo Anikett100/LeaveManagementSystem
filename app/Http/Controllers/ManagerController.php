@@ -8,46 +8,9 @@ use Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
+
 class ManagerController extends Controller
 {
-    // public function AddManagerLeave(Request $request){
-    //     $data = $request->all();   
-    //     $leave = new ManagerLeaves;
-    //     $leave->leavecategory = $request->leavecategory;
-    //     $leave->leavetype = $request->leavetype;
-    //     $leave->fromdate = $request->fromdate;
-    //     $leave->todate = $request->todate;
-    //     $leave->noofdays = $request->noofdays;
-    //     $leave->reason = $request->reason;
-    //     $data = $leave->save();
-    
-    //         $email = ['aniketnavale2712@gmail.com'];
-    //         $messageData = [
-    //             'leavecategory' => $request->leavecategory,
-    //             'leavetype' => $request->leavetype,
-    //             'fromdate' => $request->fromdate,
-    //             'todate' => $request->todate,
-    //             'noofdays' => $request->noofdays,
-    //             'reason' => $request->reason,
-                
-    //         ];
-    //         // dd( $messageData);
-    //         Mail::send('emails.userLeave', $messageData, function ($message) use ($email) {
-    //             $message->to($email)->subject('leave request');
-    //         });
-    //         if ($data) {
-    //         return response()->json([
-    //             'status' => 200,
-    //             'message' => 'Data saved and email sent successfully',
-    //         ]);
-    //     } else {
-    //         return response()->json([
-    //             'status' => 400,
-    //             'error' => 'Something went wrong',
-    //         ]);
-    //     }
-    // }
-
     public function AddLeave(Request $request)
 {
     $request->validate([
@@ -64,7 +27,6 @@ class ManagerController extends Controller
         'todate'=>'required|string'
     ]);
 
-  
     $leave = new ManagerLeaves;
     $leave->leavecategory = $request->leavecategory;
     $leave->leavetype = $request->leavetype;
@@ -81,7 +43,7 @@ class ManagerController extends Controller
     
     if ($data) {
         $email = Auth::user()->email;
-        $email1 = ['kartik@ycstech.in'];
+        // $email1 = ['kartik@ycstech.in'];
         $messageData = [
             'username' => $user->name,
             'leavecategory' => $leave->leavecategory,
@@ -98,11 +60,11 @@ class ManagerController extends Controller
                     ->subject('Leave Request')
                     ->cc(json_decode($leave->cc));
         });
-        Mail::send('emails.userLeave', $messageData, function ($message) use ($email1, $leave) {
-            $message->to($email1)
-                    ->subject('Leave Request')
-                    ->cc(json_decode($leave->cc));
-        });
+        // Mail::send('emails.userLeave', $messageData, function ($message) use ($email1, $leave) {
+        //     $message->to($email1)
+        //             ->subject('Leave Request')
+        //             ->cc(json_decode($leave->cc));
+        // });
 
         return response()->json([
             'status' => 200,
@@ -174,4 +136,10 @@ class ManagerController extends Controller
                 return response()->json(['message' => 'Leave not found.'], 404);
             }
         }
+
+
+
+       
+
+
 }

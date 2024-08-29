@@ -28,9 +28,12 @@ Route::middleware(['auth:api'])->group(function () {
 // uer
 Route::post('/add-leave',[UserController::class,'AddLeave']);
 Route::middleware('auth:api')->get('/get-leave', [UserController::class,'getLeave']);
+// for sandwich leave
+Route::middleware('auth:api')->get('/get-leaves', [UserController::class,'getLeaves']);
 Route::delete('/delete-leave/{id}',[UserController::class,'deleteLeave']);
 Route::post('update-leave/{id}', [UserController::class, 'updateLeave']);
 Route::get('leave-details/{id}', [UserController::class, 'leaveDetails']);
+// for update
 Route::get('/get-userleave/{id}', [UserController::class, 'getUserLeave']);
 Route::get('/get-user',[UserController::class,'getUser']);
 // Route::get('/paidleaves/{id}',[UserController::class,'calculateCarryForwardLeaves']);

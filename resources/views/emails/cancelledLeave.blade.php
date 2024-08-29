@@ -51,7 +51,7 @@
         </div>
         <div class="content">
             <p>Subject: {{$leavecategory}} Cancellation for {{ $fromdate }} @if($fromdate != $todate) to {{ $todate }} @endif</p>
-            {{-- <p>Dear {{ $username }},</p> --}}
+            <p>Dear {{ $username }},</p>
             <p>We regret to inform you that your {{$leavecategory}} request for {{ $fromdate }} @if($fromdate != $todate) to {{ $todate }} @endif has been cancelled. Please find the details of your leave below:</p>
             <h2>Leave Summary</h2>
             <p><span>Leave Category:</span> {{ $leavecategory }}</p>
