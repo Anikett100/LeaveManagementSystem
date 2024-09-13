@@ -30,7 +30,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'sankalp Khot',
-                'email' => 'sankapl@ycstech.in',
+                'email' => 'sankalp@ycstech.in',
                 'password' => Hash::make('sankalp@123'),
             ],
             [

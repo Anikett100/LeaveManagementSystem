@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Models\ManagerLeaves;
 use App\Models\User;
 use App\Models\UserLeaves;
 use Illuminate\Http\Request;
@@ -89,6 +90,8 @@ public function AddLeave(Request $request)
         return response()->json($leave);
     }
 
+
+    // for sandwich leave logic
     public function getLeaves()
 {
     $userId = auth()->id(); 
@@ -96,7 +99,6 @@ public function AddLeave(Request $request)
 
     return response()->json(['leaves' => $leave]);
 }
-
 
 // for update
     public function getUserLeave($id)
@@ -168,7 +170,6 @@ public function updateLeave(Request $request)
     return response()->json(['message' => 'Leave request updated successfully'], 200);
 }
 
-
     public function deleteLeave(Request $request, $id)
 {
     $leave = UserLeaves::find($id);
@@ -185,16 +186,26 @@ public function updateLeave(Request $request)
 }
 
 
-    public function leaveDetails( Request $request,$id)
-    {
-        $leave = UserLeaves::where('id', $id)->first();
-        if ($leave) {
-            return response()->json($leave, 200);
-        } else {
-            return response()->json(['message' => 'Leave not found'], 404);
-        }
-       
+   
+
+
+    public function leaveDetails(Request $request, $id)
+{
+    $leave = UserLeaves::where('id', $id)->first();
+    if ($leave) {
+        $leave->type = 'User'; 
+        return response()->json($leave, 200);
     }
+    $leave = ManagerLeaves::where('id', $id)->with('user:id,name')->first();
+    if ($leave) {
+        $leave->type = 'Manager'; 
+        $leave->manager_name = $leave->user ? $leave->user->name : 'Unknown';
+        return response()->json($leave, 200);
+    }
+
+    return response()->json(['message' => 'Leave not found'], 404);
+}
+
 
 public function calculateCarryForwardLeaves($user)
 {
