@@ -8,6 +8,7 @@ use App\Models\UserLeaves;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Log;
 
 class AdminController extends Controller
 {
@@ -26,6 +27,8 @@ public function getAdminLeave()
     $leaves = $leaves->values();
     return response()->json($leaves);
 }
+
+
 
 public function updateLeaveStatus(Request $request, $id)
 {
@@ -51,25 +54,42 @@ public function updateLeaveStatus(Request $request, $id)
 
     $newStatus = $request->status;
     $oldStatus = $leave->status;
-
     if ($leaveType === 'UserLeaves') {
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
-
+    
         if ($newStatus === 'Approved' && $oldStatus !== 'Approved' && $leave->leavetype === 'Full Day') {
             $currentMonth = Carbon::now()->format('Y-m');
             $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
-
+    
             if ($currentMonth === $leaveMonth) {
                 $remainingPaidLeaves = $user->paidleaves;
                 $paidLeavesToDeduct = min($leave->noofdays, $remainingPaidLeaves);
+    
                 $user->paidleaves -= $paidLeavesToDeduct;
                 $user->save();
             }
         }
+    
+        elseif ($newStatus === 'Cancelled' && $oldStatus === 'Approved' && $leave->leavetype === 'Full Day') {
+            $currentMonth = Carbon::now()->format('Y-m');
+            $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
+        
+            if ($currentMonth === $leaveMonth) {
+                $remainingPaidLeaves = $user->paidleaves;
+                $leaveDays = $leave->noofdays;
+        
+                $paidLeavesDeducted = min($leaveDays, 2 - $remainingPaidLeaves); 
+                $user->paidleaves += $paidLeavesDeducted;
+                $user->paidleaves = min($user->paidleaves, 2); 
+        
+                $user->save();
+            }
+        }
+              
     }
-
+    
     $leave->status = $newStatus;
     $leave->actionreason = $request->actionreason;
     $leave->save();
@@ -88,7 +108,7 @@ public function updateLeaveStatus(Request $request, $id)
         'actionreason' => $leave->actionreason,
     ];
 
-    $subject = $newStatus === 'Approved' ? 'Leave Approved' : 'Leave Cancelled';
+    $subject = $newStatus === 'Approved' ? 'Leave Approved' : 'Leave Cancelled'; 
     $emailTemplate = $newStatus === 'Approved' ? 'emails.approvedLeave' : 'emails.cancelledLeave';
 
     if ($userEmail) {
@@ -99,7 +119,6 @@ public function updateLeaveStatus(Request $request, $id)
 
     return response()->json(['message' => "Leave $newStatus successfully"]);
 }
-
 
 public function addHoliday(Request $request){  
     $holiday = new Holidays;
@@ -126,7 +145,7 @@ public function addHoliday(Request $request){
     //   for table
   public function getHoliday()
   {
-   $holidays = Holidays::get();
+   $holidays = Holidays::orderBy('date','DESC')->get();
    return response()->json($holidays);
      
   }

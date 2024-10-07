@@ -45,8 +45,8 @@ public function AddLeave(Request $request)
     $user = auth()->user();
     
     if ($data) {
-        $email = Auth::user()->email;
-        // $email1 = ['kartik@ycstech.in'];
+        // $email = Auth::user()->email;
+         $email = ['kartik@ycstech.in'];
         $messageData = [
             'username' => $user->name,
             'leavecategory' => $leave->leavecategory,

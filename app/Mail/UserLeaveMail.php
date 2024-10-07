@@ -8,6 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Address;  
 
 class UserLeaveMail extends Mailable
 {
@@ -25,10 +26,14 @@ class UserLeaveMail extends Mailable
     /**
      * Get the message envelope.
      */
+    
     public function envelope(): Envelope
+    
     {
+       
         return new Envelope(
             subject: 'User Leave Mail',
+            
         );
     }
 
