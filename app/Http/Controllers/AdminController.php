@@ -30,6 +30,97 @@ public function getAdminLeave()
 
 
 
+// public function updateLeaveStatus(Request $request, $id)
+// {
+//     $request->validate([
+//         'status' => 'required|string|in:Approved,Cancelled',
+//         'actionreason' => 'required|string',
+//     ]);
+
+//     $userLeave = UserLeaves::find($id);
+//     $managerLeave = ManagerLeaves::find($id);
+    
+//     if ($userLeave) {
+//         $leave = $userLeave;
+//         $leaveType = 'UserLeaves';
+//         $user = User::find($leave->user_id);
+//     } elseif ($managerLeave) {
+//         $leave = $managerLeave;
+//         $leaveType = 'ManagerLeaves';
+//         $user = null; 
+//     } else {
+//         return response()->json(['error' => 'Leave not found'], 404);
+//     }
+
+//     $newStatus = $request->status;
+//     $oldStatus = $leave->status;
+//     if ($leaveType === 'UserLeaves') {
+//         if (!$user) {
+//             return response()->json(['error' => 'User not found'], 404);
+//         }
+    
+//         if ($newStatus === 'Approved' && $oldStatus !== 'Approved' && $leave->leavetype === 'Full Day') {
+//             $currentMonth = Carbon::now()->format('Y-m');
+//             $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
+    
+//             if ($currentMonth === $leaveMonth) {
+//                 $remainingPaidLeaves = $user->paidleaves;
+//                 $paidLeavesToDeduct = min($leave->noofdays, $remainingPaidLeaves);
+    
+//                 $user->paidleaves -= $paidLeavesToDeduct;
+//                 $user->save();
+//             }
+//         }
+    
+//         elseif ($newStatus === 'Cancelled' && $oldStatus === 'Approved' && $leave->leavetype === 'Full Day') {
+//             $currentMonth = Carbon::now()->format('Y-m');
+//             $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
+        
+//             if ($currentMonth === $leaveMonth) {
+//                 $remainingPaidLeaves = $user->paidleaves;
+//                 $leaveDays = $leave->noofdays;
+        
+//                 $paidLeavesDeducted = min($leaveDays, 2 - $remainingPaidLeaves); 
+//                 $user->paidleaves += $paidLeavesDeducted;
+//                 $user->paidleaves = min($user->paidleaves, 2); 
+        
+//                 $user->save();
+//             }
+//         }
+              
+//     }
+    
+//     $leave->status = $newStatus;
+//     $leave->actionreason = $request->actionreason;
+//     $leave->save();
+
+//     $userEmail = $user ? $user->email : null;
+//     $userName = $user ? $user->name : 'Manager';
+//     $messageData = [
+//         'username' => $userName,
+//         'leavetype' => $leave->leavetype,
+//         'leavecategory' => $leave->leavecategory,
+//         'issandwich' => $leave->issandwich,
+//         'fromdate' => $leave->fromdate,
+//         'todate' => $leave->todate,
+//         'noofdays' => $leave->noofdays,
+//         'reason' => $leave->reason,
+//         'actionreason' => $leave->actionreason,
+//     ];
+
+//     $subject = $newStatus === 'Approved' ? 'Leave Approved' : 'Leave Cancelled'; 
+//     $emailTemplate = $newStatus === 'Approved' ? 'emails.approvedLeave' : 'emails.cancelledLeave';
+
+//     if ($userEmail) {
+//         Mail::send($emailTemplate, $messageData, function ($message) use ($userEmail, $subject) {
+//             $message->to($userEmail)->subject($subject);
+//         });
+//     }
+
+//     return response()->json(['message' => "Leave $newStatus successfully"]);
+// }
+
+
 public function updateLeaveStatus(Request $request, $id)
 {
     $request->validate([
@@ -47,18 +138,21 @@ public function updateLeaveStatus(Request $request, $id)
     } elseif ($managerLeave) {
         $leave = $managerLeave;
         $leaveType = 'ManagerLeaves';
-        $user = null; 
+        $user = User::find($leave->user_id); // Assuming manager also has a user reference
     } else {
         return response()->json(['error' => 'Leave not found'], 404);
     }
 
     $newStatus = $request->status;
     $oldStatus = $leave->status;
-    if ($leaveType === 'UserLeaves') {
+
+    // Apply logic for both user and manager leaves
+    if ($leaveType === 'UserLeaves' || $leaveType === 'ManagerLeaves') {
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
-    
+
+        // Deduct paid leaves on approval
         if ($newStatus === 'Approved' && $oldStatus !== 'Approved' && $leave->leavetype === 'Full Day') {
             $currentMonth = Carbon::now()->format('Y-m');
             $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
@@ -71,7 +165,7 @@ public function updateLeaveStatus(Request $request, $id)
                 $user->save();
             }
         }
-    
+        // Restore paid leaves on cancellation
         elseif ($newStatus === 'Cancelled' && $oldStatus === 'Approved' && $leave->leavetype === 'Full Day') {
             $currentMonth = Carbon::now()->format('Y-m');
             $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
@@ -87,7 +181,6 @@ public function updateLeaveStatus(Request $request, $id)
                 $user->save();
             }
         }
-              
     }
     
     $leave->status = $newStatus;
@@ -119,6 +212,7 @@ public function updateLeaveStatus(Request $request, $id)
 
     return response()->json(['message' => "Leave $newStatus successfully"]);
 }
+
 
 public function addHoliday(Request $request){  
     $holiday = new Holidays;
