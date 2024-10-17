@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use Auth;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -32,6 +33,7 @@ class UserLeaveMail extends Mailable
     {
        
         return new Envelope(
+          
             subject: 'User Leave Mail',
             
         );

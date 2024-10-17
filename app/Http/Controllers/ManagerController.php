@@ -120,7 +120,6 @@ class ManagerController extends Controller
 
     }
 
-
     
 public function ManagerLeaveRequests(){
     $leaves = UserLeaves::orderBy('id','desc')->with('user:id,name')->get();
@@ -138,7 +137,63 @@ public function ManagerLeaveRequests(){
      
   }
 
-  public function updateStatus(Request $request, $id)
+//   public function updateStatus(Request $request, $id)
+// {
+//     $request->validate([
+//         'status' => 'required|string|in:Approved,Cancelled',
+//         'actionreason' => 'required|string',
+//     ]);
+
+//     $leave = UserLeaves::findOrFail($id);
+//     $newStatus = $request->status;
+//     $oldStatus = $leave->status;
+//     $user = User::find($leave->user_id);
+
+//     if (!$user) {
+//         return response()->json(['error' => 'User not found'], 404);
+//     }
+
+//     if ($newStatus === 'Approved' && $oldStatus !== 'Approved'&& $leave->leavetype === 'Full Day') {
+//         $currentMonth = Carbon::now()->format('Y-m');
+//         $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
+
+//         if ($currentMonth === $leaveMonth) {
+//             $remainingPaidLeaves = $user->paidleaves;
+//             $paidLeavesToDeduct = min($leave->noofdays, $remainingPaidLeaves);
+//             $user->paidleaves -= $paidLeavesToDeduct;
+//             $user->save();
+//         }
+//     }
+
+//     $leave->status = $newStatus;
+//     $leave->actionreason = $request->actionreason;
+//     $leave->save();
+//     $userEmail = $user->email;
+//     $userName = $user->name;
+//     $messageData = [
+//         'username' => $userName,
+//         'leavetype' => $leave->leavetype,
+//         'leavecategory' => $leave->leavecategory,
+//         'issandwich' => $leave->issandwich,
+//         'fromdate' => $leave->fromdate,
+//         'todate' => $leave->todate,
+//         'noofdays' => $leave->noofdays,
+//         'reason' => $leave->reason,
+//         'actionreason' => $leave->actionreason,
+//     ];
+//     $subject = $newStatus === 'Approved' ? 'Leave Approved' : 'Leave Cancelled';
+//     $emailTemplate = $newStatus === 'Approved' ? 'emails.approvedLeave' : 'emails.cancelledLeave';
+
+ 
+//     Mail::send($emailTemplate, $messageData, function ($message) use ($userEmail, $subject) {
+//         $message->to($userEmail)->subject($subject);
+//     });
+
+//     return response()->json(['message' => "Leave $newStatus successfully"]);
+// }
+    
+
+public function updateStatus(Request $request, $id)
 {
     $request->validate([
         'status' => 'required|string|in:Approved,Cancelled',
@@ -154,7 +209,7 @@ public function ManagerLeaveRequests(){
         return response()->json(['error' => 'User not found'], 404);
     }
 
-    if ($newStatus === 'Approved' && $oldStatus !== 'Approved'&& $leave->leavetype === 'Full Day') {
+    if ($newStatus === 'Approved' && $oldStatus !== 'Approved' && $leave->leavetype === 'Full Day') {
         $currentMonth = Carbon::now()->format('Y-m');
         $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
 
@@ -165,14 +220,24 @@ public function ManagerLeaveRequests(){
             $user->save();
         }
     }
-
+   
+    elseif ($newStatus === 'Cancelled' && $oldStatus === 'Approved' && $leave->leavetype === 'Full Day') {
+        $currentMonth = Carbon::now()->format('Y-m');
+        $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
+   
+        if ($currentMonth === $leaveMonth) {
+            $leaveDays = $leave->noofdays;
+            $paidLeavesToRestore = min($leaveDays, 2 - $user->paidleaves);
+            $user->paidleaves = min($user->paidleaves + $paidLeavesToRestore, 2); 
+            $user->save();
+        }
+    }
     $leave->status = $newStatus;
     $leave->actionreason = $request->actionreason;
     $leave->save();
-    $userEmail = $user->email;
-    $userName = $user->name;
+ 
     $messageData = [
-        'username' => $userName,
+        'username' => $user->name,
         'leavetype' => $leave->leavetype,
         'leavecategory' => $leave->leavecategory,
         'issandwich' => $leave->issandwich,
@@ -185,14 +250,15 @@ public function ManagerLeaveRequests(){
     $subject = $newStatus === 'Approved' ? 'Leave Approved' : 'Leave Cancelled';
     $emailTemplate = $newStatus === 'Approved' ? 'emails.approvedLeave' : 'emails.cancelledLeave';
 
- 
-    Mail::send($emailTemplate, $messageData, function ($message) use ($userEmail, $subject) {
-        $message->to($userEmail)->subject($subject);
+    Mail::send($emailTemplate, $messageData, function ($message) use ($user, $subject) {
+        $message->to($user->email)->subject($subject);
     });
 
+   
     return response()->json(['message' => "Leave $newStatus successfully"]);
 }
-    
+
+
 
 public function Managerattendance(Request $request)
 {

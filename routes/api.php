@@ -19,7 +19,10 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('me', [AuthController::class, 'me']);
 });
 Route::post('/add-leave',[UserController::class,'AddLeave']);
+// for table
 Route::middleware('auth:api')->get('/get-leave', [UserController::class,'getLeave']);
+// for calender
+Route::middleware('auth:api')->get('/Appoved-leaves', [UserController::class,'getApprovedLeave']);
 // for sandwich leave
 Route::middleware('auth:api')->get('/get-leaves', [UserController::class,'getLeaves']);
 Route::delete('/delete-leave/{id}',[UserController::class,'deleteLeave']);
@@ -29,6 +32,9 @@ Route::get('leave-details/{id}', [UserController::class, 'leaveDetails']);
 // for update
 Route::get('/get-userleave/{id}', [UserController::class, 'getUserLeave']);
 Route::get('/get-user',[UserController::class,'getUser']);
+// paidleave
+Route::post('/update-paidleaves/{id}', [UserController::class, 'updateLeaveBalance']);
+
 Route::get('/get-adminleaves',[AdminController::class,'getAdminLeave']);
 Route::post('/update-leavestatus/{id}', [AdminController::class, 'updateLeaveStatus']);
 Route::post('/add-holiday',[AdminController::class,'addHoliday']);

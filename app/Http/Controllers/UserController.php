@@ -89,6 +89,14 @@ public function AddLeave(Request $request)
 
         return response()->json($leave);
     }
+    public function getApprovedLeave()
+    {
+        $userId = auth()->id(); 
+        $leaves = UserLeaves::where('user_id', $userId)->orderBy('id', 'desc')->get();
+    
+        // Wrap the response in a 'leaves' key
+        return response()->json(['leaves' => $leaves]);
+    }
 
 
     // for sandwich leave logic
@@ -236,6 +244,12 @@ public function calculateCarryForwardLeaves($user)
     $user->save();
 
     return response()->json(['message' => 'Carry forward leaves calculated successfully', 'paidleaves' => $user->paidleaves]);
+}
+
+public function updateLeaveBalance(Request $request, $id)
+{
+    $user = User::findOrFail($id); 
+    return $this->calculateCarryForwardLeaves($user); 
 }
 
 
