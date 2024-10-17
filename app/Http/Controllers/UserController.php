@@ -89,14 +89,35 @@ public function AddLeave(Request $request)
 
         return response()->json($leave);
     }
+    // public function getApprovedLeave()
+    // {
+    //     $userId = auth()->id(); 
+    //     $leaves = UserLeaves::where('user_id', $userId)->orderBy('id', 'desc')->get();
+    //     return response()->json(['leaves' => $leaves]);
+    // }
+
     public function getApprovedLeave()
     {
         $userId = auth()->id(); 
-        $leaves = UserLeaves::where('user_id', $userId)->orderBy('id', 'desc')->get();
     
-        // Wrap the response in a 'leaves' key
-        return response()->json(['leaves' => $leaves]);
+        // Fetch approved user leaves
+        $userLeaves = UserLeaves::where('user_id', $userId)
+            ->where('status', 'Approved')
+            ->orderBy('id', 'desc')
+            ->get();
+    
+        // Fetch approved manager leaves
+        $managerLeaves = ManagerLeaves::where('user_id', $userId)
+            ->where('status', 'Approved')
+            ->orderBy('id', 'desc')
+            ->get();
+    
+        // Combine both results
+        $allLeaves = $userLeaves->merge($managerLeaves);
+    
+        return response()->json(['leaves' => $allLeaves]);
     }
+    
 
 
     // for sandwich leave logic
