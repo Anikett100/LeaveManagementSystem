@@ -27,6 +27,8 @@ Route::middleware('auth:api')->get('/Appoved-leaves', [UserController::class,'ge
 Route::middleware('auth:api')->get('/get-leaves', [UserController::class,'getLeaves']);
 Route::delete('/delete-leave/{id}',[UserController::class,'deleteLeave']);
 Route::post('update-leave/{id}', [UserController::class, 'updateLeave']);
+// for leave cancel req
+Route::post('cancel-leave/{id}', [UserController::class, 'cancelLeave']);
 // for all pages
 Route::get('leave-details/{id}', [UserController::class, 'leaveDetails']);
 // for update
@@ -54,6 +56,14 @@ Route::get('/get-sandwichleave',[ManagerController::class,'getSandwichLeaves']);
 Route::get('/get-updateleave/{id}',[ManagerController::class,'getManagerUpdateLeave']);
 Route::post('/update-managerleave/{id}',[ManagerController::class,'updateManagerLeave']);
 Route::get('/manager-attendance',[ManagerController::class,'Managerattendance']);
+
+
+   Route::post('/carry', [UserController::class, 'calculateCarryForwardLeaves']);
+//   Route::middleware('auth:api')->post('/carry', [UserController::class, 'calculateCarryForwardLeaves']);
+
+
+
+
 
 
 
