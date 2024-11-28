@@ -58,7 +58,7 @@ Route::post('/update-managerleave/{id}',[ManagerController::class,'updateManager
 Route::get('/manager-attendance',[ManagerController::class,'Managerattendance']);
 
 
-   Route::post('/carry', [UserController::class, 'calculateCarryForwardLeaves']);
+   Route::get('/carry', [UserController::class, 'calculateCarryForwardLeaves']);
 //   Route::middleware('auth:api')->post('/carry', [UserController::class, 'calculateCarryForwardLeaves']);
 
 

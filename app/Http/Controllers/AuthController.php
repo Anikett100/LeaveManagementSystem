@@ -11,23 +11,6 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-//    public function register(Request $request){
-//     $validatedData=$request->validate([
-//         'name'=>'required|string|max:255',
-//         'email'=>'required|string|email|max:255',
-//         'password'=>'required|string|min:6|confirmed',
-
-//     ]);
-//     $user=User::create([
-//         'name'=>$validatedData['name'],
-//         'email'=>$validatedData['email'],
-//         'password'=>bcrypt($validatedData['password']),
-//     ]);
-//     $token=auth()->login($user);
-//     return $this->respondWithToken($token);
-
-//    }
-
         public function login()
         {
             $credentials = request(['email', 'password']);
@@ -56,7 +39,6 @@ class AuthController extends Controller
     {
         return $this->respondWithToken(auth()->refresh());
     }
-
    
     protected function respondWithToken($token)
     {

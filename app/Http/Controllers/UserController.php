@@ -29,8 +29,6 @@ class UserController extends Controller
             'fromdate' => 'required|string',
             'todate' => 'required|string'
         ]);
-
-
         $leave = new UserLeaves;
         $leave->leavecategory = $request->leavecategory;
         $leave->leavetype = $request->leavetype;
@@ -41,7 +39,6 @@ class UserController extends Controller
         $leave->noofdays = $request->noofdays;
         $leave->reason = $request->reason;
         $leave->user_id = $request->user_id;
-
         $data = $leave->save();
         $user = auth()->user();
 
@@ -56,7 +53,6 @@ class UserController extends Controller
                 'fromdate' => $leave->fromdate,
                 'todate' => $leave->todate,
                 'noofdays' => $leave->noofdays,
-
                 'reason' => $leave->reason,
             ];
 
@@ -87,46 +83,31 @@ class UserController extends Controller
     {
         $userId = auth()->id();
         $leave = UserLeaves::where('user_id', $userId)->orderBy('id', 'desc')->get();
-
         return response()->json($leave);
     }
-    // public function getApprovedLeave()
-    // {
-    //     $userId = auth()->id(); 
-    //     $leaves = UserLeaves::where('user_id', $userId)->orderBy('id', 'desc')->get();
-    //     return response()->json(['leaves' => $leaves]);
-    // }
-
+    
     public function getApprovedLeave()
     {
         $userId = auth()->id();
-
-        // Fetch approved user leaves
         $userLeaves = UserLeaves::where('user_id', $userId)
             ->where('status', 'Approved')
             ->orderBy('id', 'desc')
             ->get();
 
-        // Fetch approved manager leaves
         $managerLeaves = ManagerLeaves::where('user_id', $userId)
             ->where('status', 'Approved')
             ->orderBy('id', 'desc')
             ->get();
 
-        // Combine both results
         $allLeaves = $userLeaves->merge($managerLeaves);
-
         return response()->json(['leaves' => $allLeaves]);
     }
-
-
 
     // for sandwich leave logic
     public function getLeaves()
     {
         $userId = auth()->id();
         $leave = UserLeaves::where('user_id', $userId)->orderBy('id', 'desc')->get();
-
         return response()->json(['leaves' => $leave]);
     }
 
@@ -134,11 +115,9 @@ class UserController extends Controller
     public function getUserLeave($id)
     {
         $leave = UserLeaves::find($id);
-
         if (!$leave) {
             return response()->json(['error' => 'Leave not found'], 404);
         }
-
         return response()->json($leave);
     }
 
@@ -163,11 +142,9 @@ class UserController extends Controller
         }
 
         $leave = UserLeaves::find($request->id);
-
         if (!$leave) {
             return response()->json(['error' => 'Leave record not found'], 404);
         }
-
         $leave->leavetype = $request->leavetype;
         $leave->leavecategory = $request->leavecategory;
         $leave->cc = json_encode($request->cc);
@@ -204,7 +181,6 @@ class UserController extends Controller
     {
         $leave = UserLeaves::find($id);
         if ($leave) {
-
             if ($leave->status == 'Approved') {
                 return response()->json(['message' => 'Approved leave cannot be deleted.'], 403);
             }
@@ -231,89 +207,175 @@ class UserController extends Controller
         return response()->json(['message' => 'Leave not found'], 404);
     }
 
+// public function calculateCarryForwardLeaves(){   
+//     $users = User::all();
+//     foreach ($users as $user) {
+//         $lastMonth = Carbon::now()->subMonth()->month;
+//         $monthBeforeLast = Carbon::now()->subMonths(2)->month;
 
-  
-//     public function calculateCarryForwardLeaves($id)
-// {
-//     $user = User::findOrFail($id);
+//         $lastMonthLeaves = UserLeaves::where('user_id', $user->id)
+//             ->whereMonth('fromdate', $lastMonth)
+//             ->where('status', 'Approved')
+//             ->sum('noofdays');
 
-//     $currentMonth = Carbon::now()->month;
-//     $lastMonth = Carbon::now()->subMonth()->month;
-//     $monthBeforeLast = Carbon::now()->subMonths(2)->month;
+//         $monthBeforeLastLeaves = UserLeaves::where('user_id', $user->id)
+//             ->whereMonth('fromdate', $monthBeforeLast)
+//             ->where('status', 'Approved')
+//             ->sum('noofdays');
 
-//     $lastMonthLeaves = UserLeaves::where('user_id', $user->id)
-//         ->whereMonth('fromdate', $lastMonth)
-//         ->where('status', 'Approved')
-//         ->sum('noofdays');
-    
-//     $monthBeforeLastLeaves = UserLeaves::where('user_id', $user->id)
-//         ->whereMonth('fromdate', $monthBeforeLast)
-//         ->where('status', 'Approved')
-//         ->sum('noofdays');
-
-//     $carryForwardLeaves = 0;
-//     if ($lastMonthLeaves == 0) {
-//         $carryForwardLeaves += 1;
+//         $carryForwardLeaves = 0; 
+//         if ($lastMonthLeaves == 0) {
+//             $carryForwardLeaves += 1;  
+//         }
+//         if ($monthBeforeLastLeaves == 0) {
+//             $carryForwardLeaves += 1;  
+//         }
+//         $carryForwardLeaves = min($carryForwardLeaves, 2);
+//         $user->paidleaves = $carryForwardLeaves;
+//         $user->save();
 //     }
-//     if ($monthBeforeLastLeaves == 0) {
-//         $carryForwardLeaves += 1;
-//     }
 
-//     $carryForwardLeaves = min($carryForwardLeaves, 2);
-//     $user->paidleaves = $carryForwardLeaves;
-//     $user->save();
-
-//     return response()->json(['message' => 'Carry forward leaves calculated successfully', 'paidleaves' => $user->paidleaves]);
+//     return response()->json(['message' => 'Carry forward leaves calculated for all users successfully']);
 // }
 
 
+// public function calculateCarryForwardLeaves()
+//     {
+//         $usersAndManagers = User::whereIn('role', ['user', 'manager'])->get(); 
+
+//         foreach ($usersAndManagers as $user) {
+//             $lastMonth = Carbon::now()->subMonth()->month; 
+//             $monthBeforeLast = Carbon::now()->subMonths(2)->month; 
+
+//             $lastMonthLeaves = UserLeaves::where('user_id', $user->id)
+//                 ->where(function ($query) use ($lastMonth) {
+//                     $query->whereMonth('fromdate', $lastMonth)
+//                           ->orWhereMonth('todate', $lastMonth);
+//                 })
+//                 ->where('status', 'Approved')
+//                 ->get()
+//                 ->sum(function ($leave) use ($lastMonth) {
+//                     $fromDate = Carbon::parse($leave->fromdate);
+//                     $toDate = Carbon::parse($leave->todate);
+
+//                     $start = $fromDate->month == $lastMonth ? $fromDate : Carbon::now()->subMonth()->startOfMonth();
+//                     $end = $toDate->month == $lastMonth ? $toDate : Carbon::now()->subMonth()->endOfMonth();
+
+//                     return $start->diffInDays($end) + 1;
+//                 });
+
+//             $monthBeforeLastLeaves = UserLeaves::where('user_id', $user->id)
+//                 ->where(function ($query) use ($monthBeforeLast) {
+
+//                     $query->whereMonth('fromdate', $monthBeforeLast)
+//                           ->orWhereMonth('todate', $monthBeforeLast);
+//                 })
+//                 ->where('status', 'Approved')
+//                 ->get()
+//                 ->sum(function ($leave) use ($monthBeforeLast) {
+//                     $fromDate = Carbon::parse($leave->fromdate);
+//                     $toDate = Carbon::parse($leave->todate);
+
+//                     $start = $fromDate->month == $monthBeforeLast ? $fromDate : Carbon::now()->subMonths(2)->startOfMonth();
+//                     $end = $toDate->month == $monthBeforeLast ? $toDate : Carbon::now()->subMonths(2)->endOfMonth();
+
+//                     return $start->diffInDays($end) + 1;
+//                 });
+
+//             $carryForwardLeaves = 0;
+//             if ($lastMonthLeaves == 0 && $monthBeforeLastLeaves == 0) {
+//                 $carryForwardLeaves = 2; 
+//             } elseif ($lastMonthLeaves == 0 || $monthBeforeLastLeaves == 0) {
+//                 $carryForwardLeaves = 1;  
+//             }
+
+//             $user->paidleaves = $carryForwardLeaves;
+//             $user->save();        
+//         }
+
+//         return response()->json(['message' => 'Carry forward leaves calculated successfully']);
+//     }
+
+
 public function calculateCarryForwardLeaves()
-{
-    
-    $users = User::all();
+    {
+        // Fetch users and managers only
+        $usersAndManagers = User::whereIn('role', ['user', 'manager'])->get(); 
 
-    foreach ($users as $user) {
-        $lastMonth = Carbon::now()->subMonth()->month;
-        $monthBeforeLast = Carbon::now()->subMonths(2)->month;
+        foreach ($usersAndManagers as $user) {
+            $lastMonth = Carbon::now()->subMonth()->month; // Last month (October)
+            $monthBeforeLast = Carbon::now()->subMonths(2)->month; // Month before last (September)
 
-        $lastMonthLeaves = UserLeaves::where('user_id', $user->id)
-            ->whereMonth('fromdate', $lastMonth)
-            ->where('status', 'Approved')
-            ->sum('noofdays');
+            // Calculate leaves for last month (October)
+            $lastMonthLeaves = UserLeaves::where('user_id', $user->id)
+                ->where(function ($query) use ($lastMonth) {
+                    // Ensure to calculate leaves that span the last month or start within the last month
+                    $query->whereMonth('fromdate', $lastMonth)
+                          ->orWhereMonth('todate', $lastMonth);
+                })
+                ->where('status', 'Approved')
+                ->get()
+                ->sum(function ($leave) use ($lastMonth) {
+                    $fromDate = Carbon::parse($leave->fromdate);
+                    $toDate = Carbon::parse($leave->todate);
 
-        $monthBeforeLastLeaves = UserLeaves::where('user_id', $user->id)
-            ->whereMonth('fromdate', $monthBeforeLast)
-            ->where('status', 'Approved')
-            ->sum('noofdays');
+                    // Adjust dates to make sure we're within the last month range
+                    $start = $fromDate->month == $lastMonth ? $fromDate : Carbon::now()->subMonth()->startOfMonth();
+                    $end = $toDate->month == $lastMonth ? $toDate : Carbon::now()->subMonth()->endOfMonth();
 
-        $carryForwardLeaves = 0;
+                    // Calculate the number of days in this range
+                    return $start->diffInDays($end) + 1;
+                });
 
-        
-        if ($lastMonthLeaves == 0) {
-            $carryForwardLeaves += 1;  
+            // Calculate leaves for the month before last (September)
+            $monthBeforeLastLeaves = UserLeaves::where('user_id', $user->id)
+                ->where(function ($query) use ($monthBeforeLast) {
+                    // Ensure to calculate leaves that span the month before last or start within the month before last
+                    $query->whereMonth('fromdate', $monthBeforeLast)
+                          ->orWhereMonth('todate', $monthBeforeLast);
+                })
+                ->where('status', 'Approved')
+                ->get()
+                ->sum(function ($leave) use ($monthBeforeLast) {
+                    $fromDate = Carbon::parse($leave->fromdate);
+                    $toDate = Carbon::parse($leave->todate);
+
+                    // Adjust dates to make sure we're within the month before last range
+                    $start = $fromDate->month == $monthBeforeLast ? $fromDate : Carbon::now()->subMonths(2)->startOfMonth();
+                    $end = $toDate->month == $monthBeforeLast ? $toDate : Carbon::now()->subMonths(2)->endOfMonth();
+
+                    // Calculate the number of days in this range
+                    return $start->diffInDays($end) + 1;
+                });
+
+            $carryForwardLeaves = 0;
+
+            // Check for the conditions where carry forward leaves should be assigned
+            if ($lastMonthLeaves == 0 && $monthBeforeLastLeaves == 0) {
+                $carryForwardLeaves = 2;  // Both months have no approved leave
+            } elseif ($lastMonthLeaves == 0 || $monthBeforeLastLeaves == 0) {
+                $carryForwardLeaves = 1;  // One of the months has no approved leave
+            }
+
+            // Update the user's paid leaves count
+            $user->paidleaves = $carryForwardLeaves;
+            $user->save();
+
+            // Log the debug information (optional)
+            \Log::info("User ID: {$user->id}, Role: {$user->role}");
+            \Log::info("Last Month Leaves: {$lastMonthLeaves}, Month Before Last Leaves: {$monthBeforeLastLeaves}");
+            \Log::info("Carry Forward Leaves: {$carryForwardLeaves}");
         }
-        if ($monthBeforeLastLeaves == 0) {
-            $carryForwardLeaves += 1;  
-        }
 
-        $carryForwardLeaves = min($carryForwardLeaves, 2);
-        $user->paidleaves = $carryForwardLeaves;
-        $user->save();
+        // Redirect to a specific page after the calculation
+        return redirect('/paidleave')->with('message', 'Carry forward leaves calculated successfully.');
     }
-
-    return response()->json(['message' => 'Carry forward leaves calculated for all users successfully']);
-}
-
-
-
 
     public function updateLeaveBalance(Request $request, $id)
     {
         $user = User::findOrFail($id);
         return $this->calculateCarryForwardLeaves($user);
-    }
-
-
+    }  
     public function getUser()
     {
         $user = Auth::user();
@@ -322,12 +384,10 @@ public function calculateCarryForwardLeaves()
         }
         return response()->json($user);
     }
-
     public function cancelLeave(Request $request, $id)
 {
     $leaveId = $id;  
     $reason = $request->reason;
-
     try {
         $data = [
             'leaveId' => $leaveId,
