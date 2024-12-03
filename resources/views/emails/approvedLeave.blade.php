@@ -46,7 +46,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Leave Approved</h1>
+            <h1>Leave Approved by {{$approverRole}}</h1>
         </div>
         <div class="content">
             <p>Subject: {{$leavecategory}} Approved for {{ $fromdate }} @if($fromdate != $todate) to {{ $todate }} @endif</p>
@@ -59,6 +59,7 @@
             <p><span>From Date:</span> {{ $fromdate }} @if($fromdate != $todate) <span>To Date:</span> {{ $todate }} @endif</p>
             <p><span>Number of Days:</span> {{ $noofdays }}</p>
             <p><span>Reason:</span> {{ $reason }}</p>
+            <p><span>Action Reason:</span> {{ $actionreason }}</p>
             <p>Please ensure that all your responsibilities are appropriately handed over to your colleagues before your leave begins. If there are any changes or further requirements, do not hesitate to reach out to your supervisor.</p>
             <p>We hope you have a restful and productive time during your leave.</p>
         </div>

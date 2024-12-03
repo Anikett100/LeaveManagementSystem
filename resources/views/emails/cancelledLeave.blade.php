@@ -42,12 +42,15 @@
             margin-top: 20px;
             text-align: start;
         }
+        .action{
+            color: #d9534f;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Leave Cancelled</h1>
+            <h1>Leave Cancelled by {{$approverRole}}</h1>
         </div>
         <div class="content">
             <p>Subject: {{$leavecategory}} Cancellation for {{ $fromdate }} @if($fromdate != $todate) to {{ $todate }} @endif</p>
@@ -60,6 +63,7 @@
             <p><span>From Date:</span> {{ $fromdate }} @if($fromdate != $todate) <span>To Date:</span> {{ $todate }} @endif</p>
             <p><span>Number of Days:</span> {{ $noofdays }}</p>
             <p><span>Reason:</span> {{ $reason }}</p>
+            <p class="action"><span>Cancelled Reason:</span> {{ $actionreason }}</p>
             <p>If you have any questions or need further clarification, please contact your supervisor or HR team. We apologize for any inconvenience this may cause.</p>
             <p>Thank you for your understanding.</p>
         </div>

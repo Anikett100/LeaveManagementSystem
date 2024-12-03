@@ -13,20 +13,44 @@ use Log;
 class AdminController extends Controller
 {
 
+// public function getAdminLeave()
+// {
+//     $userLeaves = UserLeaves::orderBy('id', 'desc')
+//                             ->with('user:id,name')
+//                             ->get();
+ 
+//     $managerLeaves = ManagerLeaves::orderBy('id', 'desc')
+//                                   ->with('user:id,name')
+//                                   ->get();
+                                
+//     $leaves = $userLeaves->merge($managerLeaves);
+//     $leaves = $leaves->values();
+//     return response()->json($leaves);
+// }
 public function getAdminLeave()
 {
+   
     $userLeaves = UserLeaves::orderBy('id', 'desc')
-                            ->with('user:id,name')
-                            ->get();
- 
+        ->with('user:id,name')
+        ->get()
+        ->map(function ($leave) {
+            $leave->role = 'user'; 
+            return $leave;
+        });
+
     $managerLeaves = ManagerLeaves::orderBy('id', 'desc')
-                                  ->with('user:id,name')
-                                  ->get();
-                                
-    $leaves = $userLeaves->merge($managerLeaves);
-    $leaves = $leaves->values();
+        ->with('user:id,name')
+        ->get()
+        ->map(function ($leave) {
+            $leave->role = 'manager'; 
+            return $leave;
+        });
+
+    $leaves = $userLeaves->merge($managerLeaves)->values();
+
     return response()->json($leaves);
 }
+
 
 public function updateLeaveStatus(Request $request, $id)
 {
@@ -90,7 +114,7 @@ public function updateLeaveStatus(Request $request, $id)
     $leave->status = $newStatus;
     $leave->actionreason = $request->actionreason;
     $leave->save();
-
+    $approverRole = 'Admin';
     $userEmail = $user ? $user->email : null;
     $userName = $user ? $user->name : 'Manager';
     $messageData = [
@@ -103,6 +127,8 @@ public function updateLeaveStatus(Request $request, $id)
         'noofdays' => $leave->noofdays,
         'reason' => $leave->reason,
         'actionreason' => $leave->actionreason,
+        'approverRole' => $approverRole,
+
     ];
 
     $subject = $newStatus === 'Approved' ? 'Leave Approved' : 'Leave Cancelled'; 
@@ -194,7 +220,6 @@ public function attendance(Request $request)
     $data = $users->map(function ($user) use ($userLeaves) {
         $leaves = $userLeaves->get($user->id, collect()); 
 
-       
         $leavesData = $leaves->map(function ($leave) {
             return [
                 'leavetype' => $leave->leavetype,
@@ -208,7 +233,6 @@ public function attendance(Request $request)
             'leaves' => $leavesData,
         ];
     });
-
     return response()->json($data);
 }
 

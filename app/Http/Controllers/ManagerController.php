@@ -179,7 +179,7 @@ class ManagerController extends Controller
         $leave->status = $newStatus;
         $leave->actionreason = $request->actionreason;
         $leave->save();
-
+        $approverRole = 'Manager';
         $messageData = [
             'username' => $user->name,
             'leavetype' => $leave->leavetype,
@@ -190,6 +190,7 @@ class ManagerController extends Controller
             'noofdays' => $leave->noofdays,
             'reason' => $leave->reason,
             'actionreason' => $leave->actionreason,
+            'approverRole' => $approverRole,
         ];
         $subject = $newStatus === 'Approved' ? 'Leave Approved' : 'Leave Cancelled';
         $emailTemplate = $newStatus === 'Approved' ? 'emails.approvedLeave' : 'emails.cancelledLeave';

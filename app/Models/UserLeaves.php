@@ -11,7 +11,7 @@ class UserLeaves extends Model
     use HasFactory;
     protected $table='userleaves';
     protected $fillable = [
-        'leavecategory', 'leavetype', 'cc', 'fromdate','	todate', 'noofdays', 'reason', 'user_id','issandwich','status','created_at','updated_at'
+        'leavecategory', 'leavetype', 'cc', 'fromdate','todate', 'noofdays', 'reason', 'user_id','issandwich','status','created_at','updated_at'
     ];
     public function user(): BelongsTo
     {
