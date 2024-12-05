@@ -16,6 +16,6 @@ Route::get('/clear', function () {
     return "cache cleared";
 });
 
-
+Route::post('/carryforward', [UserController::class, 'calculateCarryForwardLeaves']);
 
 
