@@ -14,22 +14,8 @@ use Validator;
 
 class UserController extends Controller
 {
-    public function AddLeave(Request $request)
+       public function AddLeave(Request $request)
     {
-        // $request->validate([
-        //     // 'daterange' => 'required|string',
-        //     'leavecategory' => 'required|string',
-        //     'leavetype' => 'required|string',
-        //     'cc' => 'array',
-        //     'cc.*' => 'email',
-        //     'reason' => 'required|string',
-        //     'noofdays' => 'required|integer',
-        //     'issandwich' => 'required|string',
-        //     'user_id' => 'required|string',
-        //     'fromdate' => 'required|string',
-        //     'todate' => 'required|string'
-        // ]);
-       
         $leave = new UserLeaves;
         $leave->leavecategory = $request->leavecategory;
         $leave->leavetype = $request->leavetype;
@@ -46,7 +32,7 @@ class UserController extends Controller
         if ($data) {     
             $email = ['kartik@ycstech.in'];
             $messageData = [
-                'username' => $user->name,
+                 'username' => $user->name,
                 'leavecategory' => $leave->leavecategory,
                 'leavetype' => $leave->leavetype,
                 'issandwich' => $leave->issandwich,
@@ -62,7 +48,7 @@ class UserController extends Controller
                     ->cc(json_decode($leave->cc));
             });
             return response()->json([
-                'status' => 100,
+                'status' => 200,
                 'message' => 'Data saved and email sent successfully',
             ]);
         } else {
@@ -92,7 +78,6 @@ class UserController extends Controller
             ->where('status', 'Approved')
             ->orderBy('id', 'desc')
             ->get();
-
         $allLeaves = $userLeaves->merge($managerLeaves);
         return response()->json(['leaves' => $allLeaves]);
     }
@@ -117,23 +102,6 @@ class UserController extends Controller
 
     public function updateLeave(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'fromdate' => 'required|date',
-            'todate' => 'required|date',
-            'leavecategory' => 'required|string',
-            'leavetype' => 'required|string',
-            'cc' => 'array',
-            'cc.*' => 'email',
-            'reason' => 'required|string',
-            'noofdays' => 'required|integer',
-            'issandwich' => 'required|string',
-            'user_id' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
         $leave = UserLeaves::find($request->id);
         if (!$leave) {
             return response()->json(['error' => 'Leave record not found'], 404);
@@ -198,32 +166,11 @@ class UserController extends Controller
         }
 
         return response()->json(['message' => 'Leave not found'], 404);
-    }
-
-    
+    }    
     public function calculateCarryForwardLeaves()
 {
     $lastMonth = Carbon::now()->subMonth()->month;
     $monthBeforeLast = Carbon::now()->subMonths(2)->month;
-
-   
-    // UserLeaves::query()->chunkById(100, function ($leaves) {
-    //     foreach ($leaves as $leave) {
-    //         $leave->fromdate = Carbon::parse($leave->fromdate)->format('Y-m-d');
-    //         $leave->todate = Carbon::parse($leave->todate)->format('Y-m-d');
-    //         $leave->save();
-    //     }
-    // });
-
-    // ManagerLeaves::query()->chunkById(100, function ($leaves) {
-    //     foreach ($leaves as $leave) {
-    //         $leave->fromdate = Carbon::parse($leave->fromdate)->format('Y-m-d');
-    //         $leave->todate = Carbon::parse($leave->todate)->format('Y-m-d');
-    //         $leave->save();
-    //     }
-    // });
-
-   
     $users = User::whereIn('role', ['user', 'manager'])->get();
 
     foreach ($users as $user) {
@@ -258,7 +205,6 @@ class UserController extends Controller
         $monthBeforeLastLeaves = $calculateLeaveDays(UserLeaves::class, $user->id, $monthBeforeLast) +
             $calculateLeaveDays(ManagerLeaves::class, $user->id, $monthBeforeLast);
 
-   
         $carryForwardLeaves = 0;
         if ($lastMonthLeaves == 0 && $monthBeforeLastLeaves == 0) {
             $carryForwardLeaves = 2;
@@ -273,7 +219,6 @@ class UserController extends Controller
     return redirect()->back()->with('success', 'Carry forward leaves calculated for all users and managers successfully.');
 }
 
-    
     public function getUser()
     {
         $user = Auth::user();

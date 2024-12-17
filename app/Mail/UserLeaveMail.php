@@ -32,8 +32,7 @@ class UserLeaveMail extends Mailable
     
     {
        
-        return new Envelope(
-          
+        return new Envelope(    
             subject: 'User Leave Mail',
             
         );
@@ -45,7 +44,6 @@ class UserLeaveMail extends Mailable
     public function content(): Content
     {
         return new Content(
-           
             view:'emails.userLeave',
         );
     }

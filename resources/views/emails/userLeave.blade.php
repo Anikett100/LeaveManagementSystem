@@ -50,7 +50,7 @@
             <h1>Leave Request</h1>
         </div>
         <div class="content">
-            <p>Subject: {{$leavecategory}} Request for {{ $fromdate }} @if($fromdate != $todate) to {{ $todate }} @endif</p>
+            <p>Subject: {{$leavecategory}} Request </p>
             <p>Dear Sir/Madam,</p>
             <p>I hope this message finds you well. I am writing to formally request a {{$leavecategory}} for {{ $fromdate }} @if($fromdate != $todate) to {{ $todate }} @endif. Please find the details of my request below:</p>
             <h2>Leave Summary</h2>
