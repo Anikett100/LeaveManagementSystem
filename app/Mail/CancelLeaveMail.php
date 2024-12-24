@@ -16,10 +16,14 @@ class CancelLeaveMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct($leaveId, $reason)
+
+     public $data;
+    public function __construct($data)
     {
-        $this->leaveId = $leaveId;
-        $this->reason = $reason;
+        // $this->leaveId = $leaveId;
+        // $this->reason = $reason;
+
+        $this->data = $data;
     }
 
     /**
@@ -39,6 +43,7 @@ class CancelLeaveMail extends Mailable
     {
         return new Content(
             view: 'emails.cancelLeaveMail',
+            with: $this->data,
         );
     }
 

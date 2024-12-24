@@ -45,6 +45,7 @@ class UserLeaveMail extends Mailable
     {
         return new Content(
             view:'emails.userLeave',
+            with: $this->messageData
         );
     }
 

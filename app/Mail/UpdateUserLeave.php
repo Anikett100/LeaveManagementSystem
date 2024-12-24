@@ -1,16 +1,18 @@
 <?php
 
 namespace App\Mail;
-
+use Auth;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Address; 
 
 class UpdateUserLeave extends Mailable
 {
+    public $messageData;
     use Queueable, SerializesModels;
 
     /**
@@ -38,6 +40,7 @@ class UpdateUserLeave extends Mailable
     {
         return new Content(
             view: 'emails.updateUserLeave',
+            with: $this->messageData,
         );
     }
 

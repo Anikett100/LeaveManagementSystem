@@ -12,6 +12,7 @@ use Illuminate\Queue\SerializesModels;
 class ApprovedLeave extends Mailable
 {
     use Queueable, SerializesModels;
+    public $messageData;
 
     /**
      * Create a new message instance.
@@ -38,6 +39,7 @@ class ApprovedLeave extends Mailable
     {
         return new Content(
             view:'emails.approvedLeave',
+            with: $this->messageData,
         );
     }
 

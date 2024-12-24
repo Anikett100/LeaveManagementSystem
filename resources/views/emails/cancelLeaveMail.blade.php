@@ -11,6 +11,8 @@
         <p>A request has been made to cancel leave with the following details:</p>
         <ul>
             <li><strong>Leave ID:</strong> {{ $leaveId }}</li>
+            <li><strong>From Date:</strong> {{ $fromdate }}</li>
+            <li><strong>To Date:</strong> {{ $todate }}</li>
             <li><strong>Reason for Cancellation:</strong> {{ $reason }}</li>
         </ul>
     </div>

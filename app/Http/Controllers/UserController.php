@@ -14,7 +14,53 @@ use Validator;
 
 class UserController extends Controller
 {
-       public function AddLeave(Request $request)
+    //    public function AddLeave(Request $request)
+    // {
+    //     $leave = new UserLeaves;
+    //     $leave->leavecategory = $request->leavecategory;
+    //     $leave->leavetype = $request->leavetype;
+    //     $leave->issandwich = $request->issandwich;
+    //     $leave->cc = json_encode($request->cc);
+    //     $leave->fromdate = $request->fromdate;
+    //     $leave->todate = $request->todate;
+    //     $leave->noofdays = $request->noofdays;
+    //     $leave->reason = $request->reason;
+    //     $leave->user_id = $request->user_id;
+    //     $data = $leave->save();
+    //     $user = auth()->user();
+
+    //     if ($data) {     
+    //         $email = ['kartik@ycstech.in'];
+    //         $messageData = [
+    //              'username' => $user->name,
+    //             'leavecategory' => $leave->leavecategory,
+    //             'leavetype' => $leave->leavetype,
+    //             'issandwich' => $leave->issandwich,
+    //             'fromdate' => $leave->fromdate,
+    //             'todate' => $leave->todate,
+    //             'noofdays' => $leave->noofdays,
+    //             'reason' => $leave->reason,
+    //         ];
+
+    //         Mail::send('emails.userLeave', $messageData, function ($message) use ($email, $leave) {
+    //             $message->to($email)
+    //                 ->subject('Leave Request')
+    //                 ->cc(json_decode($leave->cc));
+    //         });
+    //         return response()->json([
+    //             'status' => 200,
+    //             'message' => 'Data saved and email sent successfully',
+    //         ]);
+    //     } else {
+    //         return response()->json([
+    //             'status' => 400,
+    //             'error' => 'Something went wrong',
+    //         ]);
+    //     }
+    // }
+
+
+    public function AddLeave(Request $request)
     {
         $leave = new UserLeaves;
         $leave->leavecategory = $request->leavecategory;
@@ -42,11 +88,9 @@ class UserController extends Controller
                 'reason' => $leave->reason,
             ];
 
-            Mail::send('emails.userLeave', $messageData, function ($message) use ($email, $leave) {
-                $message->to($email)
-                    ->subject('Leave Request')
-                    ->cc(json_decode($leave->cc));
-            });
+            Mail::to($email)
+            ->cc(json_decode($leave->cc))
+            ->queue(new \App\Mail\UserLeaveMail($messageData));
             return response()->json([
                 'status' => 200,
                 'message' => 'Data saved and email sent successfully',
@@ -57,6 +101,124 @@ class UserController extends Controller
                 'error' => 'Something went wrong',
             ]);
         }
+    }
+
+
+    // public function updateLeave(Request $request)
+    // {
+    //     $leave = UserLeaves::find($request->id);
+    //     if (!$leave) {
+    //         return response()->json(['error' => 'Leave record not found'], 404);
+    //     }
+    //     $leave->leavetype = $request->leavetype;
+    //     $leave->leavecategory = $request->leavecategory;
+    //     $leave->cc = json_encode($request->cc);
+    //     $leave->reason = $request->reason;
+    //     $leave->fromdate = $request->fromdate;
+    //     $leave->todate = $request->todate;
+    //     $leave->noofdays = $request->noofdays;
+    //     $leave->issandwich = $request->issandwich;
+    //     $leave->save();
+
+    //     $email = Auth::user()->email;
+    //     $username = Auth::user()->name;
+    //     $messageData = [
+    //         'leavecategory' => $leave->leavecategory,
+    //         'leavetype' => $leave->leavetype,
+    //         'issandwich' => $leave->issandwich,
+    //         'fromdate' => $leave->fromdate,
+    //         'todate' => $leave->todate,
+    //         'noofdays' => $leave->noofdays,
+    //         'reason' => $leave->reason,
+    //         'username' => $username,
+    //     ];
+
+    //     Mail::send('emails.updateUserLeave', $messageData, function ($message) use ($email, $leave) {
+    //         $message->to($email)
+    //             ->subject('Leave Request')
+    //             ->cc(json_decode($leave->cc));
+    //     });
+
+    //     return response()->json(['message' => 'Leave request updated successfully'], 200);
+    // }
+
+
+
+
+    // public function updateLeave(Request $request)
+    // {
+    //     $leave = UserLeaves::find($request->id);
+    //     if (!$leave) {
+    //         return response()->json(['error' => 'Leave record not found'], 404);
+    //     }
+    //     $leave->leavetype = $request->leavetype;
+    //     $leave->leavecategory = $request->leavecategory;
+    //     $leave->cc = json_encode($request->cc);
+    //     $leave->reason = $request->reason;
+    //     $leave->fromdate = $request->fromdate;
+    //     $leave->todate = $request->todate;
+    //     $leave->noofdays = $request->noofdays;
+    //     $leave->issandwich = $request->issandwich;
+    //     $leave->save();
+
+    //     $email = Auth::user()->email;
+    //     $username = Auth::user()->name;
+    //     $messageData = [
+    //         'leavecategory' => $leave->leavecategory,
+    //         'leavetype' => $leave->leavetype,
+    //         'issandwich' => $leave->issandwich,
+    //         'fromdate' => $leave->fromdate,
+    //         'todate' => $leave->todate,
+    //         'noofdays' => $leave->noofdays,
+    //         'reason' => $leave->reason,
+    //         'username' => $username,
+    //     ];
+
+    //     Mail::send('emails.updateUserLeave', $messageData, function ($message) use ($email, $leave) {
+    //         $message->to($email)
+    //             ->subject('Leave Request')
+    //             ->cc(json_decode($leave->cc));
+    //     });
+
+    //     return response()->json(['message' => 'Leave request updated successfully'], 200);
+    // }
+        
+
+    public function updateLeave(Request $request)
+    {
+        $leave = UserLeaves::find($request->id);
+        if (!$leave) {
+            return response()->json(['error' => 'Leave record not found'], 404);
+        }
+        $leave->leavetype = $request->leavetype;
+        $leave->leavecategory = $request->leavecategory;
+        $leave->cc = json_encode($request->cc);
+        $leave->reason = $request->reason;
+        $leave->fromdate = $request->fromdate;
+        $leave->todate = $request->todate;
+        $leave->noofdays = $request->noofdays;
+        $leave->issandwich = $request->issandwich;
+        $leave->save();
+
+        $email = Auth::user()->email;
+        $username = Auth::user()->name;
+        $messageData = [
+            'leavecategory' => $leave->leavecategory,
+            'leavetype' => $leave->leavetype,
+            'issandwich' => $leave->issandwich,
+            'fromdate' => $leave->fromdate,
+            'todate' => $leave->todate,
+            'noofdays' => $leave->noofdays,
+            'reason' => $leave->reason,
+            'username' => $username,
+        ];
+        Mail::to($email)
+        ->cc(json_decode($leave->cc))
+        ->queue(new \App\Mail\UpdateUserLeave($messageData));
+        return response()->json([
+            'status' => 200,
+            'message' => 'Data saved and email sent successfully',
+        ]);   
     }
 
     public function getLeave()
@@ -100,43 +262,7 @@ class UserController extends Controller
         return response()->json($leave);
     }
 
-    public function updateLeave(Request $request)
-    {
-        $leave = UserLeaves::find($request->id);
-        if (!$leave) {
-            return response()->json(['error' => 'Leave record not found'], 404);
-        }
-        $leave->leavetype = $request->leavetype;
-        $leave->leavecategory = $request->leavecategory;
-        $leave->cc = json_encode($request->cc);
-        $leave->reason = $request->reason;
-        $leave->fromdate = $request->fromdate;
-        $leave->todate = $request->todate;
-        $leave->noofdays = $request->noofdays;
-        $leave->issandwich = $request->issandwich;
-        $leave->save();
-
-        $email = Auth::user()->email;
-        $username = Auth::user()->name;
-        $messageData = [
-            'leavecategory' => $leave->leavecategory,
-            'leavetype' => $leave->leavetype,
-            'issandwich' => $leave->issandwich,
-            'fromdate' => $leave->fromdate,
-            'todate' => $leave->todate,
-            'noofdays' => $leave->noofdays,
-            'reason' => $leave->reason,
-            'username' => $username,
-        ];
-
-        Mail::send('emails.updateUserLeave', $messageData, function ($message) use ($email, $leave) {
-            $message->to($email)
-                ->subject('Leave Request')
-                ->cc(json_decode($leave->cc));
-        });
-
-        return response()->json(['message' => 'Leave request updated successfully'], 200);
-    }
+   
 
     public function deleteLeave(Request $request, $id)
     {
@@ -166,7 +292,9 @@ class UserController extends Controller
         }
 
         return response()->json(['message' => 'Leave not found'], 404);
-    }    
+    } 
+    
+    
     public function calculateCarryForwardLeaves()
 {
     $lastMonth = Carbon::now()->subMonth()->month;
@@ -228,27 +356,59 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    // mail function for request for approved cancle leave 
-    public function cancelLeave(Request $request, $id)
+    // mail function for request for  cancel approved leave 
+//     public function cancelLeave(Request $request, $id)
+// {
+//     $leaveId = $id;  
+//     $reason = $request->reason;
+//     $fromdate=$request->fromdate;
+//     $todate=$request->todate;
+
+
+//     try {
+//         $data = [
+//             'leaveId' => $leaveId,
+//             'reason' => $reason,
+//             'todate'=>$todate,
+//             'fromdate'=>$fromdate,
+//         ];
+//         Mail::to("kartik@ycstech.in")->queue(new CancelLeaveMail($data));;
+
+//         return response()->json(['message' => 'Cancellation request sent.'], 200);
+//     } catch (\Exception $e) {
+//         return response()->json(['message' => 'Failed to send cancellation request.'], 500);
+//     }
+// }
+
+
+public function cancelLeave(Request $request, $id)
 {
-    $leaveId = $id;  
+    $leaveId = $id;
     $reason = $request->reason;
     try {
+        $leave = UserLeaves::find($leaveId);
+        if (!$leave) {
+            $leave = ManagerLeaves::find($leaveId);
+            if (!$leave) {
+                return response()->json(['message' => 'Leave not found.'], 404);
+            }
+        }
         $data = [
             'leaveId' => $leaveId,
-            'reason' => $reason
+            'reason' => $reason,
+            'fromdate' => $leave->fromdate,
+            'todate' => $leave->todate,
         ];
-
-        Mail::send('emails.CancelLeaveMail', $data, function($message) {
-            $message->to('kartik@ycstech.in')  
-                    ->subject('Leave Cancellation Request');
-        });
-
+        Mail::to("kartik@ycstech.in")->queue(new CancelLeaveMail($data));
         return response()->json(['message' => 'Cancellation request sent.'], 200);
     } catch (\Exception $e) {
-        return response()->json(['message' => 'Failed to send cancellation request.'], 500);
+        return response()->json([
+            'message' => 'Failed to send cancellation request.',
+            'error' => $e->getMessage(),
+        ], 500);
     }
 }
+
 
 
 }

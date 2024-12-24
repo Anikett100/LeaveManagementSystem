@@ -12,6 +12,7 @@ use Illuminate\Queue\SerializesModels;
 class CancelledLeave extends Mailable
 {
     use Queueable, SerializesModels;
+    public $messageData;
 
     /**
      * Create a new message instance.
@@ -28,6 +29,7 @@ class CancelledLeave extends Mailable
     {
         return new Envelope(
             subject: 'Cancelled Leave',
+            
         );
     }
 
@@ -38,6 +40,7 @@ class CancelledLeave extends Mailable
     {
         return new Content(
             view: 'emails.cancelledLeave',
+            with: $this->messageData,
         );
     }
 

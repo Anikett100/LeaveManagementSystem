@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ApprovedLeave;
+use App\Mail\CancelledLeave;
 use App\Models\ManagerLeaves;
 use App\Models\UserLeaves;
 use App\Models\User;
@@ -43,7 +45,7 @@ class ManagerController extends Controller
 
         if ($data) {
             // $email = Auth::user()->email;
-             $email = ['kartik@ycstech.in'];
+             $email = ['sankalp@ycstech.in'];
             $messageData = [
                 'username' => $user->name,
                 'leavecategory' => $leave->leavecategory,
@@ -52,20 +54,17 @@ class ManagerController extends Controller
                 'fromdate' => $leave->fromdate,
                 'todate' => $leave->todate,
                 'noofdays' => $leave->noofdays,
-
                 'reason' => $leave->reason,
             ];
 
-            Mail::send('emails.userLeave', $messageData, function ($message) use ($email, $leave) {
-                $message->to($email)
-                    ->subject('Leave Request');
+            // Mail::send('emails.userLeave', $messageData, function ($message) use ($email, $leave) {
+            //     $message->to($email)
+            //         ->subject('Leave Request');
 
-            });
-            // Mail::send('emails.userLeave', $messageData, function ($message) use ($email1, $leave) {
-            //     $message->to($email1)
-            //             ->subject('Leave Request')
-            //             ->cc(json_decode($leave->cc));
             // });
+
+            Mail::to($email)
+            ->queue(new \App\Mail\UserLeaveMail($messageData));
 
             return response()->json([
                 'status' => 200,
@@ -78,6 +77,66 @@ class ManagerController extends Controller
             ]);
         }
     }
+
+
+    public function updateManagerLeave(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'fromdate' => 'required|date',
+            'todate' => 'required|date',
+            'leavecategory' => 'required|string',
+            'leavetype' => 'required|string',
+            'reason' => 'required|string',
+            'noofdays' => 'required|integer',
+            'issandwich' => 'required|string',
+            'user_id' => 'required|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $leave = ManagerLeaves::find($request->id);
+
+        if (!$leave) {
+            return response()->json(['error' => 'Leave record not found'], 404);
+        }
+
+        $leave->leavetype = $request->leavetype;
+        $leave->leavecategory = $request->leavecategory;
+        $leave->reason = $request->reason;
+        $leave->fromdate = $request->fromdate;
+        $leave->todate = $request->todate;
+        $leave->noofdays = $request->noofdays;
+        $leave->issandwich = $request->issandwich;
+        $leave->save();
+
+        // $email = Auth::user()->email;
+        $email = ['sankalp@ycstech.in'];
+        $username = Auth::user()->name;
+        $messageData = [
+            'leavecategory' => $leave->leavecategory,
+            'leavetype' => $leave->leavetype,
+            'issandwich' => $leave->issandwich,
+            'fromdate' => $leave->fromdate,
+            'todate' => $leave->todate,
+            'noofdays' => $leave->noofdays,
+            'reason' => $leave->reason,
+            'username' => $username,
+        ];
+
+        // Mail::send('emails.updateUserLeave', $messageData, function ($message) use ($email, $leave) {
+        //     $message->to($email)
+        //         ->subject('Leave Request');
+
+        // });
+        Mail::to($email)
+        ->queue(new \App\Mail\UpdateUserLeave($messageData));
+
+        return response()->json(['message' => 'Leave request updated successfully'], 200);
+    }
+     
+
 
     public function getManagerLeave()
     {
@@ -139,18 +198,85 @@ class ManagerController extends Controller
 
     }
 
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     $request->validate([
+    //         'status' => 'required|string|in:Approved,Cancelled',
+    //         'actionreason' => 'required|string',
+    //     ]);
+
+    //     $leave = UserLeaves::findOrFail($id);
+    //     $newStatus = $request->status;
+    //     $oldStatus = $leave->status;
+    //     $user = User::find($leave->user_id);
+
+    //     if (!$user) {
+    //         return response()->json(['error' => 'User not found'], 404);
+    //     }
+
+    //     if ($newStatus === 'Approved' && $oldStatus !== 'Approved' && $leave->leavetype === 'Full Day') {
+    //         $currentMonth = Carbon::now()->format('Y-m');
+    //         $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
+
+    //         if ($currentMonth === $leaveMonth) {
+    //             $remainingPaidLeaves = $user->paidleaves;
+    //             $paidLeavesToDeduct = min($leave->noofdays, $remainingPaidLeaves);
+    //             $user->paidleaves -= $paidLeavesToDeduct;
+    //             $user->save();
+    //         }
+    //     } elseif ($newStatus === 'Cancelled' && $oldStatus === 'Approved' && $leave->leavetype === 'Full Day') {
+    //         $currentMonth = Carbon::now()->format('Y-m');
+    //         $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
+
+    //         if ($currentMonth === $leaveMonth) {
+    //             $leaveDays = $leave->noofdays;
+    //             $paidLeavesToRestore = min($leaveDays, 2 - $user->paidleaves);
+    //             $user->paidleaves = min($user->paidleaves + $paidLeavesToRestore, 2);
+    //             $user->save();
+    //         }
+    //     }
+    //     $leave->status = $newStatus;
+    //     $leave->actionreason = $request->actionreason;
+    //     $leave->save();
+    //     $approverRole = 'Manager';
+    //     $messageData = [
+    //         'username' => $user->name,
+    //         'leavetype' => $leave->leavetype,
+    //         'leavecategory' => $leave->leavecategory,
+    //         'issandwich' => $leave->issandwich,
+    //         'fromdate' => $leave->fromdate,
+    //         'todate' => $leave->todate,
+    //         'noofdays' => $leave->noofdays,
+    //         'reason' => $leave->reason,
+    //         'actionreason' => $leave->actionreason,
+    //         'approverRole' => $approverRole,
+    //     ];
+    //     $subject = $newStatus === 'Approved' ? 'Leave Approved' : 'Leave Cancelled';
+    //     $emailTemplate = $newStatus === 'Approved' ? 'emails.approvedLeave' : 'emails.cancelledLeave';
+
+    //     Mail::send($emailTemplate, $messageData, function ($message) use ($user, $subject) {
+    //         $message->to($user->email)->subject($subject);
+    //     });
+    //     return response()->json(['message' => "Leave $newStatus successfully"]);
+    // }
+
+
+
     public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'status' => 'required|string|in:Approved,Cancelled',
-            'actionreason' => 'required|string',
-        ]);
-
-        $leave = UserLeaves::findOrFail($id);
-        $newStatus = $request->status;
-        $oldStatus = $leave->status;
+{
+    $userLeave = UserLeaves::find($id);
+   
+    if ($userLeave) {
+        $leave = $userLeave;
+        $leaveType = 'UserLeaves';
         $user = User::find($leave->user_id);
+    }  else {
+        return response()->json(['error' => 'Leave not found'], 404);
+    }
+    $newStatus = $request->status;
+    $oldStatus = $leave->status;
 
+    if ($leaveType === 'UserLeaves' || $leaveType === 'ManagerLeaves') {
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
         }
@@ -162,6 +288,7 @@ class ManagerController extends Controller
             if ($currentMonth === $leaveMonth) {
                 $remainingPaidLeaves = $user->paidleaves;
                 $paidLeavesToDeduct = min($leave->noofdays, $remainingPaidLeaves);
+
                 $user->paidleaves -= $paidLeavesToDeduct;
                 $user->save();
             }
@@ -170,38 +297,51 @@ class ManagerController extends Controller
             $leaveMonth = Carbon::parse($leave->fromdate)->format('Y-m');
 
             if ($currentMonth === $leaveMonth) {
+                $remainingPaidLeaves = $user->paidleaves;
                 $leaveDays = $leave->noofdays;
-                $paidLeavesToRestore = min($leaveDays, 2 - $user->paidleaves);
-                $user->paidleaves = min($user->paidleaves + $paidLeavesToRestore, 2);
+
+                $paidLeavesDeducted = min($leaveDays, 2 - $remainingPaidLeaves);
+                $user->paidleaves += $paidLeavesDeducted;
+                $user->paidleaves = min($user->paidleaves, 2);
                 $user->save();
             }
         }
-        $leave->status = $newStatus;
-        $leave->actionreason = $request->actionreason;
-        $leave->save();
-        $approverRole = 'Manager';
-        $messageData = [
-            'username' => $user->name,
-            'leavetype' => $leave->leavetype,
-            'leavecategory' => $leave->leavecategory,
-            'issandwich' => $leave->issandwich,
-            'fromdate' => $leave->fromdate,
-            'todate' => $leave->todate,
-            'noofdays' => $leave->noofdays,
-            'reason' => $leave->reason,
-            'actionreason' => $leave->actionreason,
-            'approverRole' => $approverRole,
-        ];
-        $subject = $newStatus === 'Approved' ? 'Leave Approved' : 'Leave Cancelled';
-        $emailTemplate = $newStatus === 'Approved' ? 'emails.approvedLeave' : 'emails.cancelledLeave';
-
-        Mail::send($emailTemplate, $messageData, function ($message) use ($user, $subject) {
-            $message->to($user->email)->subject($subject);
-        });
-
-
-        return response()->json(['message' => "Leave $newStatus successfully"]);
     }
+    $leave->status = $newStatus;
+    $leave->actionreason = $request->actionreason;
+    $leave->save();
+
+    $approverRole = 'Admin';
+    $userEmail = $user ? $user->email : null;
+    $userName = $user ? $user->name : null;
+    $messageData = [
+        'username' => $userName,
+        'leavetype' => $leave->leavetype,
+        'leavecategory' => $leave->leavecategory,
+        'issandwich' => $leave->issandwich,
+        'fromdate' => $leave->fromdate,
+        'todate' => $leave->todate,
+        'noofdays' => $leave->noofdays,
+        'reason' => $leave->reason,
+        'actionreason' => $leave->actionreason,
+        'approverRole' => $approverRole,
+    ];
+
+    if ($newStatus === 'Approved') {
+        $subject = 'Leave Approved';
+        $emailTemplate = new ApprovedLeave($messageData);
+    } else {
+        $subject = 'Leave Cancelled';
+        $emailTemplate = new CancelledLeave($messageData);
+    }
+
+    if ($userEmail) {
+        Mail::to($userEmail)->queue($emailTemplate);
+    }
+
+    return response()->json(['message' => "Leave $newStatus successfully"]);
+}
+
 
 
 
@@ -224,63 +364,10 @@ class ManagerController extends Controller
                 'leaves' => $leavesData->isEmpty() ? [] : $leavesData->toArray(),
             ];
         }
-
         return response()->json($data);
     }
 
-    public function updateManagerLeave(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'fromdate' => 'required|date',
-            'todate' => 'required|date',
-            'leavecategory' => 'required|string',
-            'leavetype' => 'required|string',
-            'reason' => 'required|string',
-            'noofdays' => 'required|integer',
-            'issandwich' => 'required|string',
-            'user_id' => 'required|string'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $leave = ManagerLeaves::find($request->id);
-
-        if (!$leave) {
-            return response()->json(['error' => 'Leave record not found'], 404);
-        }
-
-        $leave->leavetype = $request->leavetype;
-        $leave->leavecategory = $request->leavecategory;
-        $leave->reason = $request->reason;
-        $leave->fromdate = $request->fromdate;
-        $leave->todate = $request->todate;
-        $leave->noofdays = $request->noofdays;
-        $leave->issandwich = $request->issandwich;
-        $leave->save();
-
-        $email = Auth::user()->email;
-        $username = Auth::user()->name;
-        $messageData = [
-            'leavecategory' => $leave->leavecategory,
-            'leavetype' => $leave->leavetype,
-            'issandwich' => $leave->issandwich,
-            'fromdate' => $leave->fromdate,
-            'todate' => $leave->todate,
-            'noofdays' => $leave->noofdays,
-            'reason' => $leave->reason,
-            'username' => $username,
-        ];
-
-        Mail::send('emails.updateUserLeave', $messageData, function ($message) use ($email, $leave) {
-            $message->to($email)
-                ->subject('Leave Request');
-
-        });
-
-        return response()->json(['message' => 'Leave request updated successfully'], 200);
-    }
+   
 
 
 }
